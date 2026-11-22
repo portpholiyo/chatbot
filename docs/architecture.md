@@ -5,13 +5,13 @@ Current state of the `chatbot` service. Update this file in the same change as a
 ## Context
 ```mermaid
 flowchart LR
-  V[Visitor browser] -->|HTTPS| E[Reverse proxy: TLS, routing]
-  E -->|loopback only| C[chatbot service]
-  C -->|guard + answer| L[(LLM API)]
-  C --> P[(PostgreSQL)]
-  O[Owner] -->|bearer token| C
+  V[Visitor] --> P[Reverse proxy]
+  P --> C[chatbot service]
+  C --> L[(LLM API)]
+  C --> D[(PostgreSQL)]
+  O[Owner] -.->|admin| C
 ```
-The service binds to loopback only and is reachable solely through a reverse proxy ([ADR-0001](adr/0001-loopback-only-behind-reverse-proxy.md)).
+Visitors reach the service only through a reverse proxy that terminates TLS and routes requests; the service itself binds to loopback only ([ADR-0001](adr/0001-loopback-only-behind-reverse-proxy.md)). The owner reads stored conversations through a bearer-token admin endpoint.
 
 ## Components
 | Path | Responsibility |
