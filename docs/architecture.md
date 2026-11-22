@@ -53,7 +53,25 @@ sequenceDiagram
 ```
 
 ## Data
-One table, `messages`: question, answer, status (`answered|refused|error`), `knowledge_gap` flag, token counts, latency, HMAC of the client IP. Migrations are embedded in the binary and applied on boot under an advisory lock, so concurrent starts are safe ([ADR-0004](adr/0004-embedded-migrations-advisory-lock.md)).
+```mermaid
+erDiagram
+  direction LR
+  MESSAGES {
+    bigint id PK
+    uuid session_id
+    timestamptz created_at
+    text ip_hash
+    text question
+    text answer
+    text status
+    bool knowledge_gap
+    text model
+    int input_tokens
+    int output_tokens
+    int latency_ms
+  }
+```
+One table, `messages`: one row per exchange. A conversation is the set of rows sharing a `session_id` (no separate table); the server loads the last N rows of a session as history, so clients never supply it. `status` is `answered`, `refused` or `error`; `knowledge_gap` marks questions the bot could not answer; `ip_hash` is an HMAC, never a raw address. Indexes serve history lookups (`session_id, created_at`), recent-first listing, and a partial index on knowledge gaps. Migrations are embedded in the binary and applied on boot under an advisory lock, so concurrent starts are safe ([ADR-0004](adr/0004-embedded-migrations-advisory-lock.md)).
 
 ## Limits (defaults in `internal/config/config.go`)
 500-character message, 10 turns of history, per-IP rate limit, daily exchange cap, output-token cap, concurrency cap. All are configurable; production values are set outside the code.
