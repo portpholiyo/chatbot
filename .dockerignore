@@ -1,0 +1,6 @@
+.git
+.github
+*.md
+!internal/knowledge/knowledge.md
+creds-and-keys
+.env*
